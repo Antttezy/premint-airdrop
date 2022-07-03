@@ -21,6 +21,9 @@ pub enum AirdropError {
 
     #[error("Acoount is not properly derived")]
     PdaCheckFailed,
+
+    #[error("Acoount is not initialized")]
+    Uninitialized,
 }
 
 impl PrintProgramError for AirdropError {

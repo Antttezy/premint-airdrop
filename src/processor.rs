@@ -3,14 +3,19 @@ use solana_program::{
     entrypoint::ProgramResult,
     msg,
     program_error::ProgramError,
-    pubkey::Pubkey, rent::Rent, sysvar::Sysvar,
+    program_pack::IsInitialized,
+    pubkey::Pubkey,
+    rent::Rent,
+    system_program,
+    sysvar::Sysvar,
 };
 
 use crate::{
     error::AirdropError,
     instruction::deserialize_instruction_data,
-    pda::find_mint_authority,
-    util::process_initialize_airdrop_logic,
+    pda::{find_airdrop_user_data, find_mint_authority},
+    state::{AirdropConfig, AirdropUserData},
+    util::{process_initialize_airdrop_logic, process_initialize_airdrop_user_account_logic},
 };
 
 pub fn process_instruction<'a>(
@@ -29,7 +34,9 @@ pub fn process_instruction<'a>(
                 args.price,
             )
         }
-        crate::instruction::AirdropInstruction::InitializeAirdropUser(_) => todo!(),
+        crate::instruction::AirdropInstruction::InitializeAirdropUser(_) => {
+            process_initialize_airdrop_user(program_id, accounts)
+        }
     }
 }
 
@@ -71,6 +78,8 @@ fn process_initialize_airdrop<'a>(
     msg!("Assert fee payer is signer");
     assert_signer(fee_payer)?;
 
+    // ----------------
+
     msg!("Get rent info from account");
     let rent = Rent::from_account_info(rent)?;
 
@@ -86,7 +95,74 @@ fn process_initialize_airdrop<'a>(
         price,
         program_id,
         rent,
-        mint_authority_bump
+        mint_authority_bump,
+    )?;
+
+    Ok(())
+}
+
+fn process_initialize_airdrop_user<'a>(
+    program_id: &Pubkey,
+    accounts: &'a [AccountInfo<'a>],
+) -> ProgramResult {
+    let iter = &mut accounts.iter();
+    let user_data_account = next_account_info(iter)?;
+    let user = next_account_info(iter)?;
+    let airdrop = next_account_info(iter)?;
+    let rent = next_account_info(iter)?;
+    let fee_payer = next_account_info(iter)?;
+
+    // User data account checks
+    msg!("Assert user data is properly derived");
+    let (user_data_account_pda, user_data_account_bump) =
+        find_airdrop_user_data(airdrop.key, user.key);
+
+    if user_data_account_pda != *user_data_account.key {
+        return Err(AirdropError::PdaCheckFailed.into());
+    }
+
+    msg!("Assert user data is not initialized");
+    if user_data_account.lamports() > 0 {
+        return Err(ProgramError::AccountAlreadyInitialized);
+    }
+
+    msg!("Assert user data account is writeable");
+    assert_writeable(user_data_account)?;
+
+    // User checks
+    msg!("Assert that user is regular wallet");
+    assert_owned_by(user, &system_program::id())?;
+
+    // Airdrop config checks
+    msg!("Assert that airdrop config is owned by program");
+    assert_owned_by(airdrop, program_id)?;
+    msg!("Assert that airdrop config is writeable");
+    assert_writeable(airdrop)?;
+
+    msg!("Assert airdrop config is initialized");
+    let airdrop_data = AirdropConfig::unpack_from_account(airdrop)?;
+
+    if !airdrop_data.is_initialized() {
+        return Err(AirdropError::Uninitialized.into());
+    }
+
+    // Fee payer checks
+    msg!("Assert that fee payer is signer");
+    assert_signer(fee_payer)?;
+
+    // ----------------
+
+    msg!("Get rent");
+    let rent = Rent::from_account_info(rent)?;
+
+    process_initialize_airdrop_user_account_logic(
+        user_data_account,
+        user,
+        airdrop,
+        fee_payer,
+        rent,
+        program_id,
+        user_data_account_bump,
     )?;
 
     Ok(())

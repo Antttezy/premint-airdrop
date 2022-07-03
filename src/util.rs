@@ -4,15 +4,15 @@ use solana_program::{
     msg,
     program::invoke_signed,
     program_error::ProgramError,
-    program_pack::IsInitialized,
+    program_pack::{IsInitialized, Pack},
     pubkey::Pubkey,
     rent::Rent,
     system_instruction,
 };
 
-use crate::state::{AirdropConfig, MintAuthority, MINT_AUTHORITY};
+use crate::state::{AirdropConfig, AirdropUserData, MintAuthority, MINT_AUTHORITY, USER_DATA};
 
-pub fn process_initialize_airdrop_logic<'a >(
+pub fn process_initialize_airdrop_logic<'a>(
     airdrop_account: &AccountInfo,
     airdrop_authority: &AccountInfo,
     mint_authority: &'a AccountInfo<'a>,
@@ -54,6 +54,7 @@ pub fn process_initialize_airdrop_logic<'a >(
         &[mint_authority_bump],
     ];
 
+    msg!("Initialize mint authority");
     invoke_signed(
         &system_instruction::create_account(
             fee_payer.key,
@@ -67,4 +68,56 @@ pub fn process_initialize_airdrop_logic<'a >(
     )?;
 
     Ok(())
+}
+
+pub fn process_initialize_airdrop_user_account_logic<'a>(
+    user_data_account: &'a AccountInfo<'a>,
+    user: &'a AccountInfo<'a>,
+    airdrop_config: &'a AccountInfo<'a>,
+    fee_payer: &'a AccountInfo<'a>,
+    rent: Rent,
+    program_id: &Pubkey,
+    user_data_account_bump: u8,
+) -> ProgramResult {
+
+    // Create account
+    msg!("Initialize user airdrop account");
+    let lamports = rent.minimum_balance(AirdropUserData::LEN);
+    let user_data_account_seed = &[
+        USER_DATA.as_bytes(),
+        airdrop_config.key.as_ref(),
+        user.key.as_ref(),
+        &[user_data_account_bump],
+    ];
+
+    invoke_signed(
+        &system_instruction::create_account(
+            fee_payer.key,
+            user_data_account.key,
+            lamports,
+            AirdropUserData::LEN as u64,
+            program_id,
+        ),
+        &[fee_payer.clone(), user_data_account.clone()],
+        &[user_data_account_seed],
+    )?;
+
+    // Write account data
+    let user_account_data = AirdropUserData {
+        initialized: true,
+        airdrop: *airdrop_config.key,
+        user: *user.key,
+        mints_amount: 0,
+        locked_till: 0,
+    };
+
+    AirdropUserData::pack_into_account(user_account_data, user_data_account)?;
+
+    // Increase user counter
+    let mut airdrop_config_data = AirdropConfig::unpack_from_account(airdrop_config)?;
+    airdrop_config_data.airdrop_users += 1;
+    AirdropConfig::pack_into_account(airdrop_config_data, airdrop_config)?;
+
+
+    todo!()
 }

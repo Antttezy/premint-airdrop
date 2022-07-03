@@ -29,8 +29,9 @@ pub enum AirdropInstruction {
     /// Accounts required:
     /// 0. `[writeable]`. User data account. Used to store user data
     /// 1. `[]`. User. Wallet that will use the account
-    /// 2. `[]`. Airdrop. Airdrop that data account will be associated with
-    /// 3. `[signer]`. Fee payer. Wallet that is paying fee for creating an account
+    /// 2. `[writeable]`. Airdrop. Airdrop that data account will be associated with
+    /// 3. `[]`. Rent sysvar
+    /// 4. `[signer]`. Fee payer. Wallet that is paying fee for creating an account
     InitializeAirdropUser(InitializeAirdropUserDataArgs),
 }
 
