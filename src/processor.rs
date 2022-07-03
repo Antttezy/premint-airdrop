@@ -14,7 +14,7 @@ use crate::{
     error::AirdropError,
     instruction::deserialize_instruction_data,
     pda::{find_airdrop_user_data, find_mint_authority},
-    state::{AirdropConfig, AirdropUserData},
+    state::AirdropConfig,
     util::{process_initialize_airdrop_logic, process_initialize_airdrop_user_account_logic},
 };
 

@@ -1,3 +1,4 @@
+use num_derive::FromPrimitive;
 use solana_program::{
     decode_error::DecodeError,
     msg,
@@ -5,7 +6,7 @@ use solana_program::{
 };
 use thiserror::Error;
 
-#[derive(Debug, Clone, Copy, Error)]
+#[derive(Debug, Clone, Copy, Error, FromPrimitive)]
 pub enum AirdropError {
     #[error("Unexpected input in instruction id")]
     BadInstructionId,

@@ -11,6 +11,8 @@ test-bpf = []
 solana-program="~1.10.28"
 thiserror = "~1.0.31"
 arrayref = "~0.3.6"
+num-traits = "~0.2.15"
+num-derive = "~0.3.3"
 
 [dev-dependencies]
 solana-sdk="~1.10.28"
