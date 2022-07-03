@@ -28,6 +28,7 @@ pub struct AirdropUserData {
     pub airdrop: Pubkey,
     pub user: Pubkey,
     pub mints_amount: u64,
+    pub locked_till: u64,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -121,6 +122,70 @@ impl AirdropConfig {
 
     pub fn pack_into_account(
         state: AirdropConfig,
+        account: &AccountInfo,
+    ) -> Result<(), ProgramError> {
+        Self::pack(state, &mut account.data.borrow_mut())
+    }
+}
+
+impl Sealed for AirdropUserData {}
+
+impl IsInitialized for AirdropUserData {
+    fn is_initialized(&self) -> bool {
+        self.initialized
+    }
+}
+
+impl Pack for AirdropUserData {
+    const LEN: usize = 1 + 32 + 32 + 8 + 8;
+
+    fn pack_into_slice(&self, dst: &mut [u8]) {
+        let dst = array_mut_ref![dst, 0, AirdropUserData::LEN];
+
+        let (initialized, airdrop, user, mints_amount, locked_till) =
+            mut_array_refs![dst, 1, 32, 32, 8, 8];
+
+        initialized[0] = self.initialized as u8;
+        airdrop.copy_from_slice(&self.airdrop.to_bytes());
+        user.copy_from_slice(&self.user.to_bytes());
+        mints_amount.copy_from_slice(&self.mints_amount.to_le_bytes());
+        locked_till.copy_from_slice(&self.locked_till.to_le_bytes());
+    }
+
+    fn unpack_from_slice(src: &[u8]) -> Result<Self, ProgramError> {
+        let src = array_ref![src, 0, AirdropUserData::LEN];
+
+        let (initialized_src, airdrop_src, user_src, mints_amount_src, locked_till_src) =
+            array_refs![src, 1, 32, 32, 8, 8];
+
+        let initialized = match initialized_src {
+            [0] => false,
+            [1] => true,
+            _ => return Err(ProgramError::InvalidAccountData),
+        };
+
+        let airdrop = Pubkey::new_from_array(*airdrop_src);
+        let user = Pubkey::new_from_array(*user_src);
+        let mints_amount = u64::from_le_bytes(*mints_amount_src);
+        let locked_till = u64::from_le_bytes(*locked_till_src);
+
+        Ok(AirdropUserData {
+            initialized,
+            airdrop,
+            user,
+            mints_amount,
+            locked_till,
+        })
+    }
+}
+
+impl AirdropUserData {
+    pub fn unpack_from_account(account: &AccountInfo) -> Result<AirdropUserData, ProgramError> {
+        Self::unpack_unchecked(&account.data.borrow())
+    }
+
+    pub fn pack_into_account(
+        state: AirdropUserData,
         account: &AccountInfo,
     ) -> Result<(), ProgramError> {
         Self::pack(state, &mut account.data.borrow_mut())
