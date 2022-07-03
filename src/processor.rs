@@ -6,7 +6,6 @@ use solana_program::{
     program_pack::IsInitialized,
     pubkey::Pubkey,
     rent::Rent,
-    system_program,
     sysvar::Sysvar,
 };
 
@@ -36,6 +35,9 @@ pub fn process_instruction<'a>(
         }
         crate::instruction::AirdropInstruction::InitializeAirdropUser(_) => {
             process_initialize_airdrop_user(program_id, accounts)
+        }
+        crate::instruction::AirdropInstruction::MintOne(_) => {
+            process_mint_one(program_id, accounts)
         }
     }
 }
@@ -130,8 +132,8 @@ fn process_initialize_airdrop_user<'a>(
     assert_writeable(user_data_account)?;
 
     // User checks
-    msg!("Assert that user is regular wallet");
-    assert_owned_by(user, &system_program::id())?;
+    // msg!("Assert that user is regular wallet");
+    // assert_owned_by(user, &system_program::id())?;
 
     // Airdrop config checks
     msg!("Assert that airdrop config is owned by program");
@@ -166,6 +168,30 @@ fn process_initialize_airdrop_user<'a>(
     )?;
 
     Ok(())
+}
+
+fn process_mint_one<'a>(program_id: &Pubkey, accounts: &'a [AccountInfo<'a>]) -> ProgramResult {
+
+    let iter = &mut accounts.iter();
+    let airdrop_config = next_account_info(iter)?;
+    let user_data_account = next_account_info(iter)?;
+    let mint_account = next_account_info(iter)?;
+    let user = next_account_info(iter)?;
+    let user_token_account = next_account_info(iter)?;
+    let token_metadata_account = next_account_info(iter)?;
+    let mint_authority = next_account_info(iter)?;
+    let _ = next_account_info(iter)?;                                       // System program
+    let clock_var = next_account_info(iter)?;
+    let rent_var = next_account_info(iter)?;
+    let _ = next_account_info(iter)?;                                       // Token program
+    let _ = next_account_info(iter)?;                                       // Associated token program
+    let _ = next_account_info(iter)?;                                       // Token metadata program
+    let payer = next_account_info(iter)?;
+    let airdrop_authority = next_account_info(iter)?;
+    let revenue_wallet = next_account_info(iter)?;
+
+
+    todo!()
 }
 
 fn assert_signer(acc: &AccountInfo) -> Result<(), ProgramError> {

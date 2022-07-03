@@ -14,6 +14,8 @@ pub struct InitializeAirdropArgs {
 
 pub struct InitializeAirdropUserDataArgs {}
 
+pub struct MintOneArgs {}
+
 pub enum AirdropInstruction {
     ///
     /// Accounts required:
@@ -33,6 +35,26 @@ pub enum AirdropInstruction {
     /// 3. `[]`. Rent sysvar
     /// 4. `[signer]`. Fee payer. Wallet that is paying fee for creating an account
     InitializeAirdropUser(InitializeAirdropUserDataArgs),
+
+    ///
+    /// Accounts required:
+    /// 0. `[writeable]`. Airdrop account
+    /// 1. `[writeable]`. User data account
+    /// 2. `[signer, writeable]`. SPL mint account. Represents a token in solana blockchain
+    /// 3. `[]`. Recipient. Wallet that owns user data account and will recieve a token
+    /// 4. `[writeable]`. Recipient token account. Needs to be initialized, represents ownership of a token
+    /// 5. `[writeable]`. Token metadata account. Holds NFT metadata
+    /// 6. `[]`. Mint authority
+    /// 7. `[]`. System program
+    /// 8. `[]`. Clock sysvar
+    /// 9. `[]`. Rent sysvar
+    /// 10. `[]`. Token program
+    /// 11. `[]`. Associated token program
+    /// 12. `[]`. Metaplex token metadata program
+    /// 13. `[signer, writeable]`. Payer. Wallet that pays for NFT.
+    /// 14. `[signer]`. Airdrop authority. Authority owner must verify that user is eglible for airdrop
+    /// 15. `[writeable]`. Revenue wallet
+    MintOne(MintOneArgs),
 }
 
 fn parse_initialize_airdrop_args(body: &[u8]) -> Result<InitializeAirdropArgs, ProgramError> {
@@ -62,6 +84,10 @@ fn parse_initialize_airdrop_user_args(
     Ok(InitializeAirdropUserDataArgs {})
 }
 
+fn parse_mint_one_args(_body: &[u8]) -> Result<MintOneArgs, ProgramError> {
+    Ok(MintOneArgs {})
+}
+
 pub fn deserialize_instruction_data(
     instruction_data: &[u8],
 ) -> Result<AirdropInstruction, ProgramError> {
@@ -76,6 +102,7 @@ pub fn deserialize_instruction_data(
         2 => Ok(AirdropInstruction::InitializeAirdropUser(
             parse_initialize_airdrop_user_args(body)?,
         )),
+        3 => Ok(AirdropInstruction::MintOne(parse_mint_one_args(body)?)),
         _ => Err(AirdropError::BadInstructionId.into()),
     }
 }
