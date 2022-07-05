@@ -19,6 +19,7 @@ pub struct AirdropConfig {
     pub symbol: [u8; 8],
     pub airdrop_users: u64,
     pub revenues_wallet: Pubkey,
+    pub admin_account: Pubkey,
     pub price: u64,
 }
 
@@ -43,7 +44,7 @@ impl IsInitialized for AirdropConfig {
 }
 
 impl Pack for AirdropConfig {
-    const LEN: usize = 1 + 32 + 8 + 8 + 32 + 8 + 8 + 32 + 8;
+    const LEN: usize = 1 + 32 + 8 + 8 + 32 + 8 + 8 + 32 + 32 + 8;
 
     fn pack_into_slice(&self, dst: &mut [u8]) {
         let dst = array_mut_ref![dst, 0, AirdropConfig::LEN];
@@ -57,8 +58,9 @@ impl Pack for AirdropConfig {
             symbol,
             airdrop_users,
             revenues_wallet,
+            admin_account,
             price,
-        ) = mut_array_refs![dst, 1, 32, 8, 8, 32, 8, 8, 32, 8];
+        ) = mut_array_refs![dst, 1, 32, 8, 8, 32, 8, 8, 32, 32, 8];
 
         initialized[0] = self.initialized as u8;
         airdrop_authority.copy_from_slice(&self.airdrop_authority.to_bytes());
@@ -68,6 +70,7 @@ impl Pack for AirdropConfig {
         symbol.copy_from_slice(&self.symbol);
         airdrop_users.copy_from_slice(&self.airdrop_users.to_le_bytes());
         revenues_wallet.copy_from_slice(&self.revenues_wallet.to_bytes());
+        admin_account.copy_from_slice(&self.admin_account.to_bytes());
         price.copy_from_slice(&self.price.to_le_bytes());
     }
 
@@ -83,8 +86,9 @@ impl Pack for AirdropConfig {
             symbol_src,
             airdrop_users_src,
             revenues_wallet_src,
+            admin_account_src,
             price_src,
-        ) = array_refs![src, 1, 32, 8, 8, 32, 8, 8, 32, 8];
+        ) = array_refs![src, 1, 32, 8, 8, 32, 8, 8, 32, 32, 8];
 
         let initialized = match initialized_src {
             [0] => false,
@@ -99,6 +103,7 @@ impl Pack for AirdropConfig {
         let metadata_prefix = metadata_prefix_src.clone();
         let airdrop_users = u64::from_le_bytes(*airdrop_users_src);
         let revenues_wallet = Pubkey::new_from_array(*revenues_wallet_src);
+        let admin_account = Pubkey::new_from_array(*admin_account_src);
         let price = u64::from_le_bytes(*price_src);
 
         Ok(AirdropConfig {
@@ -110,6 +115,7 @@ impl Pack for AirdropConfig {
             metadata_prefix,
             airdrop_users,
             revenues_wallet,
+            admin_account,
             price,
         })
     }

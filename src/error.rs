@@ -25,6 +25,15 @@ pub enum AirdropError {
 
     #[error("Acoount is not initialized")]
     Uninitialized,
+
+    #[error("Wrong account address")]
+    WrongAccountAddress,
+
+    #[error("User timeout is not expired yet")]
+    UserTimeout,
+
+    #[error("Out of supply")]
+    OutOfSupply,
 }
 
 impl PrintProgramError for AirdropError {

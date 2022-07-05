@@ -23,8 +23,9 @@ pub enum AirdropInstruction {
     /// 1. `[]`. Airdrop authority. Account that will have the authority to airdrop nfts
     /// 2. `[]`. Mint authority. It will be used to mint airdropped nfts
     /// 3. `[]`. Revenues wallet. Wallet where all revenues are paid out
-    /// 4. `[]`. Rent sysvar
-    /// 5. `[signer]`. Fee payer. Wallet that will pay for creating mint authority
+    /// 4. `[]`. Admin account. Account that will be verified creator of minted tokens.
+    /// 5. `[]`. Rent sysvar
+    /// 6. `[signer]`. Fee payer. Wallet that will pay for creating mint authority
     InitializeAirdrop(InitializeAirdropArgs),
 
     ///
@@ -42,7 +43,7 @@ pub enum AirdropInstruction {
     /// 1. `[writeable]`. User data account
     /// 2. `[signer, writeable]`. SPL mint account. Represents a token in solana blockchain
     /// 3. `[]`. Recipient. Wallet that owns user data account and will recieve a token
-    /// 4. `[writeable]`. Recipient token account. Needs to be initialized, represents ownership of a token
+    /// 4. `[writeable]`. Recipient token account.
     /// 5. `[writeable]`. Token metadata account. Holds NFT metadata
     /// 6. `[]`. Mint authority
     /// 7. `[]`. System program
@@ -53,7 +54,8 @@ pub enum AirdropInstruction {
     /// 12. `[]`. Metaplex token metadata program
     /// 13. `[signer, writeable]`. Payer. Wallet that pays for NFT.
     /// 14. `[signer]`. Airdrop authority. Authority owner must verify that user is eglible for airdrop
-    /// 15. `[writeable]`. Revenue wallet
+    /// 15. `[]`. Admin account
+    /// 16. `[writeable]`. Revenue wallet
     MintOne(MintOneArgs),
 }
 
