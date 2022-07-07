@@ -121,7 +121,7 @@ pub fn process_initialize_airdrop_user_account_logic<'a>(
     airdrop_config_data.airdrop_users += 1;
     AirdropConfig::pack_into_account(airdrop_config_data, airdrop_config)?;
 
-    todo!()
+    Ok(())
 }
 
 pub fn process_airdrop_one_logic<'a>(
