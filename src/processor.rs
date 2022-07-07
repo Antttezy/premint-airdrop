@@ -63,6 +63,7 @@ fn process_initialize_airdrop<'a>(
     let admin_account = next_account_info(iter)?;
     let rent = next_account_info(iter)?;
     let fee_payer = next_account_info(iter)?;
+    let _system_program = next_account_info(iter)?;
 
     // Airdrop account checks
     msg!("Assert airdrop config writeable");
@@ -79,6 +80,9 @@ fn process_initialize_airdrop<'a>(
     if mint_authority_pda != *mint_authority.key {
         return Err(AirdropError::PdaCheckFailed.into());
     }
+
+    msg!("Assert mint authority is writeable");
+    assert_writeable(mint_authority)?;
 
     // Revenues account checks
 

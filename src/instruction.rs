@@ -21,11 +21,12 @@ pub enum AirdropInstruction {
     /// Accounts required:
     /// 0. `[writeable]`. Airdrop account. Used to store all of the airdrop data
     /// 1. `[]`. Airdrop authority. Account that will have the authority to airdrop nfts
-    /// 2. `[]`. Mint authority. It will be used to mint airdropped nfts
+    /// 2. `[writeable]`. Mint authority. It will be used to mint airdropped nfts
     /// 3. `[]`. Revenues wallet. Wallet where all revenues are paid out
     /// 4. `[]`. Admin account. Account that will be verified creator of minted tokens.
     /// 5. `[]`. Rent sysvar
     /// 6. `[signer]`. Fee payer. Wallet that will pay for creating mint authority
+    /// 7. `[]`. System program
     InitializeAirdrop(InitializeAirdropArgs),
 
     ///
@@ -35,6 +36,7 @@ pub enum AirdropInstruction {
     /// 2. `[writeable]`. Airdrop. Airdrop that data account will be associated with
     /// 3. `[]`. Rent sysvar
     /// 4. `[signer]`. Fee payer. Wallet that is paying fee for creating an account
+    /// 5. `[]`. System program
     InitializeAirdropUser(InitializeAirdropUserDataArgs),
 
     ///
