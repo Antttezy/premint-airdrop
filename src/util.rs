@@ -143,7 +143,7 @@ pub fn process_airdrop_one_logic<'a>(
     token_program: &'a AccountInfo<'a>,
 ) -> ProgramResult {
     // Create mint account for token
-    let lamports = rent.minimum_balance(spl_token::state::Account::LEN);
+    let lamports = rent.minimum_balance(spl_token::state::Mint::LEN);
 
     msg!("Initialize account for mint");
     // Create mint
@@ -152,7 +152,7 @@ pub fn process_airdrop_one_logic<'a>(
             payer.key,
             mint.key,
             lamports,
-            spl_token::state::Account::LEN as u64,
+            spl_token::state::Mint::LEN as u64,
             &spl_token::id(),
         ),
         &[payer.clone(), mint.clone()],
